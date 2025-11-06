@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Identidad Notable Simbólica</title>
+    <title>Identidad Notable Simbólica (Ejercicio)</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -19,22 +19,33 @@
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
-        button {
+        .button-group button {
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
-            background-color: #28a745; /* Color verde para diferenciar */
-            color: white;
             border: none;
             border-radius: 5px;
             transition: background-color 0.3s;
-            margin-bottom: 20px;
+            margin: 0 10px;
         }
-        button:hover {
+        #btn-generar {
+            background-color: #28a745; /* Verde */
+            color: white;
+        }
+        #btn-generar:hover {
             background-color: #1e7e34;
         }
+        #btn-mostrar-solucion {
+            background-color: #007bff; /* Azul */
+            color: white;
+            /* Inicialmente oculto */
+            display: none; 
+        }
+        #btn-mostrar-solucion:hover {
+            background-color: #0056b3;
+        }
         #identidad-display, #resultado-display {
-            font-family: 'Times New Roman', serif; /* Fuente más matemática */
+            font-family: 'Times New Roman', serif;
             font-size: 1.6em;
             margin: 20px 0;
             padding: 15px;
@@ -42,9 +53,18 @@
             min-height: 50px;
             border-radius: 4px;
             background-color: #e9ecef;
-            overflow-x: auto; /* Para manejar expresiones largas */
+            overflow-x: auto;
         }
-        /* Subíndices para las potencias */
+        /* Estilo para ocultar el resultado */
+        #resultado-container {
+            visibility: hidden; 
+            opacity: 0; 
+            transition: visibility 0s, opacity 0.5s linear;
+        }
+        #resultado-container.visible {
+            visibility: visible;
+            opacity: 1;
+        }
         sup {
             font-size: 0.7em;
             vertical-align: super;
@@ -54,125 +74,126 @@
 <body>
 
     <div class="container">
-        <h1>Identidades Notables Simbólicas</h1>
+        <h1>Identidades Notables - Ejercicio</h1>
 
-        <button onclick="generarIdentidad()">Generar Nueva Identidad Simbólica</button>
+        <div class="button-group">
+            <button id="btn-generar" onclick="generarIdentidad()">Generar Nueva Identidad</button>
+            <button id="btn-mostrar-solucion" onclick="mostrarSolucion()">Mostrar Solución</button>
+        </div>
 
-        <h2>Identidad (Forma Factorizada):</h2>
-        <div id="identidad-display">Presiona el botón para empezar.</div>
+        <hr>
 
-        <h2>Resultado (Forma Desarrollada):</h2>
-        <div id="resultado-display"></div>
+        <h2>Identidad a Desarrollar:</h2>
+        <div id="identidad-display">Presiona el botón Generar para empezar.</div>
+
+        <div id="resultado-container">
+            <h2>Resultado (Forma Desarrollada):</h2>
+            <div id="resultado-display"></div>
+        </div>
     </div>
 
     <script>
-        // Función auxiliar para generar un coeficiente entero aleatorio (ej. 2 a 5)
+        // Función auxiliar para generar un coeficiente entero aleatorio
         function getRandomCoefficient(min = 2, max = 5) {
-            // Aseguramos que sea al menos 2 para que el coeficiente no sea 1 o 0
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
-        // Función auxiliar para formatear términos. Si el coeficiente es 1, no se muestra.
+        // Función auxiliar para formatear términos. 
         function formatTerm(coeff, variable, exponent) {
-            // Si el coeficiente es 0, el término completo es 0
             if (coeff === 0) return ""; 
 
-            // Formato para el coeficiente
+            // Formato para el coeficiente (oculta '1' si hay variable)
             let coeffStr = Math.abs(coeff) === 1 && exponent > 0 ? "" : Math.abs(coeff).toString();
             
-            // Si el exponente es 1, no se muestra (ej: 'x')
+            // Formato para la variable y exponente
             let varStr = exponent === 1 ? variable : 
                          exponent === 2 ? `${variable}²` : 
-                         `${variable}<sup>${exponent}</sup>`; // Exponente > 2 si se quisiera
+                         exponent === 0 ? "" :
+                         `${variable}<sup>${exponent}</sup>`; 
             
-            // Si el exponente es 0, solo se muestra el coeficiente
-            if (exponent === 0) varStr = "";
-
-            // Coeficiente y variable juntos (ej: 4x², y)
             let term = coeffStr + varStr;
             
-            // Manejar el signo
+            // Retorna el signo y el término
             return (coeff > 0 ? " + " : " - ") + term;
         }
+
+        // Variable global para almacenar el resultado
+        let resultadoGlobal = "";
         
-        // Función principal para generar y mostrar la identidad simbólica
+        // --- FUNCIONES DE CONTROL ---
+
+        // Muestra el botón 'Mostrar Solución' y oculta el resultado
+        function prepararEjercicio() {
+            document.getElementById('btn-mostrar-solucion').style.display = 'inline-block';
+            const resultadoCont = document.getElementById('resultado-container');
+            resultadoCont.classList.remove('visible');
+            resultadoCont.style.visibility = 'hidden'; 
+        }
+
+        // Muestra el resultado y oculta el botón 'Mostrar Solución'
+        function mostrarSolucion() {
+            document.getElementById('resultado-display').innerHTML = resultadoGlobal;
+            document.getElementById('btn-mostrar-solucion').style.display = 'none';
+            
+            const resultadoCont = document.getElementById('resultado-container');
+            // Usamos una pequeña transición para que aparezca suavemente
+            resultadoCont.style.visibility = 'visible';
+            resultadoCont.classList.add('visible'); 
+        }
+        
+        // --- FUNCIÓN PRINCIPAL DE GENERACIÓN ---
         function generarIdentidad() {
-            // Generar coeficientes aleatorios positivos para a y b
+            prepararEjercicio(); // Resetea la interfaz para un nuevo ejercicio
+            
             const a = getRandomCoefficient(); // Coeficiente de x
             const b = getRandomCoefficient(); // Coeficiente constante
             
-            // Elegir un tipo de identidad aleatorio: 0, 1 o 2
             const tipo = Math.floor(Math.random() * 3); 
 
             let identidad;
-            let resultado;
+            let resultadoDesarrollado;
             
-            // Coeficientes resultantes después de elevar o multiplicar
             const a2 = a * a; // Coeficiente de x²
             const b2 = b * b; // Coeficiente constante al cuadrado
-
-            // La variable principal es 'x' y la constante es 'b'
             const varX = 'x'; 
-            const varY = 'y'; // Usaremos 'y' para el caso de binomio
 
-            // Lógica para generar la identidad y su resultado simbólico
             switch (tipo) {
-                case 0: // TIPO 1: (ax + b)² = a²x² + 2abx + b² (Binomio suma al cuadrado)
-                    const dos_ab = 2 * a * b; // Coeficiente de x
-                    
+                case 0: // (ax + b)² = a²x² + 2abx + b²
+                    const dos_ab_sum = 2 * a * b; 
                     identidad = `(${a}${varX} + ${b})²`;
                     
                     // a²x² + 2abx + b²
-                    // Se usa substring(3) para quitar el primer " + " del primer término
-                    resultado = formatTerm(a2, varX, 2).substring(3) + 
-                                formatTerm(dos_ab, varX, 1) + 
-                                formatTerm(b2, "", 0); // Exponente 0 para el término constante
+                    resultadoDesarrollado = formatTerm(a2, varX, 2).substring(3) + 
+                                            formatTerm(dos_ab_sum, varX, 1) + 
+                                            formatTerm(b2, "", 0); 
                     break;
 
-                case 1: // TIPO 2: (ax - b)² = a²x² - 2abx + b² (Binomio diferencia al cuadrado)
-                    const dos_ab_diff = 2 * a * b; // Coeficiente de x
-                    
+                case 1: // (ax - b)² = a²x² - 2abx + b²
+                    const dos_ab_diff = 2 * a * b; 
                     identidad = `(${a}${varX} - ${b})²`;
                     
                     // a²x² - 2abx + b²
-                    resultado = formatTerm(a2, varX, 2).substring(3) + // a²x² (quitando el +)
-                                formatTerm(-dos_ab_diff, varX, 1) + // -2abx (el signo negativo se maneja en formatTerm)
-                                formatTerm(b2, "", 0); // +b²
+                    resultadoDesarrollado = formatTerm(a2, varX, 2).substring(3) + 
+                                            formatTerm(-dos_ab_diff, varX, 1) + 
+                                            formatTerm(b2, "", 0); 
                     break;
 
-                case 2: // TIPO 3: (ax + b) · (ax - b) = a²x² - b² (Suma por diferencia)
+                case 2: // (ax + b) · (ax - b) = a²x² - b²
                     identidad = `(${a}${varX} + ${b}) · (${a}${varX} - ${b})`;
                     
                     // a²x² - b²
-                    resultado = formatTerm(a2, varX, 2).substring(3) + // a²x²
-                                formatTerm(-b2, "", 0); // -b²
+                    resultadoDesarrollado = formatTerm(a2, varX, 2).substring(3) + 
+                                            formatTerm(-b2, "", 0); 
                     break;
                 
-                // Opcional: Podrías añadir (ax + by)²
-                /*
-                case 3: // TIPO 4: (ax + by)² = a²x² + 2abxy + b²y²
-                    const b_y = getRandomCoefficient(); // Nuevo coeficiente para y
-                    const a2_case3 = a * a;
-                    const b2_y = b_y * b_y;
-                    const dos_ab_xy = 2 * a * b_y;
-                    
-                    identidad = `(${a}${varX} + ${b_y}${varY})²`;
-
-                    // a²x² + 2abxy + b²y²
-                    resultado = formatTerm(a2_case3, varX, 2).substring(3) + // a²x²
-                                formatTerm(dos_ab_xy, varX + varY, 1) + // 2abxy
-                                formatTerm(b2_y, varY, 2); // b²y²
-                    break;
-                */
-
                 default:
                     identidad = "Error";
-                    resultado = "Error";
+                    resultadoDesarrollado = "Error";
             }
 
-            // Mostrar los resultados en la página
+            // Almacenar el resultado y mostrar la identidad
+            resultadoGlobal = resultadoDesarrollado;
             document.getElementById('identidad-display').innerHTML = identidad;
-            document.getElementById('resultado-display').innerHTML = resultado;
         }
     </script>
 
